@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
-import { Toaster } from "react-hot-toast";
+import { Toaster, toast } from "react-hot-toast";
 
 import SearchBar from "../SearchBar/SearchBar";
 import MovieGrid from "../MovieGrid/MovieGrid";
@@ -27,6 +27,13 @@ export default function App() {
   });
 
   const totalPages = data?.total_pages ?? 0;
+  const movies = data?.results ?? [];
+
+  useEffect(() => {
+    if (isSuccess && movies.length === 0) {
+      toast("No results found");
+    }
+  }, [isSuccess, movies]);
 
   const handleSearch = (newQuery: string) => {
     setQuery(newQuery);
@@ -35,12 +42,10 @@ export default function App() {
 
   const closeModal = () => setSelectedMovie(null);
 
-  const movies = data?.results ?? [];
-
   return (
     <div className={css.app}>
-      <SearchBar onSubmit={handleSearch} />
       <Toaster />
+      <SearchBar onSubmit={handleSearch} />
 
       {isSuccess && totalPages > 1 && (
         <Pagination
@@ -52,16 +57,8 @@ export default function App() {
 
       {isLoading && <Loader />}
       {isError && <ErrorMessage />}
-      {!isLoading && isSuccess && movies.length === 0 && (
-        <p
-          style={{ textAlign: "center", fontWeight: "bold", marginTop: "20px" }}
-        >
-          {" "}
-          No results found{" "}
-        </p>
-      )}
 
-      {!isLoading && !isError && movies.length > 0 && (
+      {!isLoading && !isError && isSuccess && movies.length > 0 && (
         <MovieGrid movies={movies} onSelect={setSelectedMovie} />
       )}
 
